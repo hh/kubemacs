@@ -133,7 +133,7 @@ RUN apt-get update \
 #     update-alternatives --install /usr/bin/python python /usr/bin/python3 2
 
 RUN mkdir -p /usr/share/kubemacs
-ADD kind-cluster-config.yaml kind-cluster+registry.yaml kustomization.yaml /usr/share/kubemacs/
+ADD kind-cluster-config.yaml kind-cluster+registry.yaml kind-cluster+netboot.yaml kustomization.yaml /usr/share/kubemacs/
 ADD manifests /usr/share/kubemacs/manifests
 ADD kustomization.yaml /usr/share/kubemacs/manifests
 

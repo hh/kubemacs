@@ -61,6 +61,8 @@ KUBEMACS_INIT_DIRECT="${KUBEMACS_INIT_DIRECT:-true}"
 KIND_LOCAL_REGISTRY_ENABLE=${KIND_LOCAL_REGISTRY_ENABLE:-false}
 KIND_LOCAL_REGISTRY_NAME=${KIND_LOCAL_REGISTRY_NAME:-registry}
 KIND_LOCAL_REGISTRY_PORT=${KIND_LOCAL_REGISTRY_PORT:-5000}
+KIND_LOCAL_NETBOOT_ENABLE=${KIND_LOCAL_NETBOOT_ENABLE:-false}
+KIND_LOCAL_NETBOOT_NAME=${KIND_LOCAL_NETBOOT_NAME:-netboot}
 HOST_UID="${HOST_UID:-0}"
 
 if [ $KUBEMACS_INIT_DEBUG = true ]; then
@@ -96,6 +98,8 @@ cat <<EOF
 | KIND_LOCAL_REGISTRY_ENABLE         | false            | $KIND_LOCAL_REGISTRY_ENABLE |
 | KIND_LOCAL_REGISTRY_NAME           | registry         | $KIND_LOCAL_REGISTRY_NAME |
 | KIND_LOCAL_REGISTRY_PORT           | 5000             | $KIND_LOCAL_REGISTRY_PORT |
+| KIND_LOCAL_NETBOOT_ENABLE          | false            | $KIND_LOCAL_NETBOOT_ENABLE |
+| KIND_LOCAL_NETBOOT_NAME            | netboot          | $KIND_LOCAL_NETBOOT_NAME |
 | KUBEMACS_INIT_DEFAULT_NAMESPACE    | kubemacs         | $KUBEMACS_INIT_DEFAULT_NAMESPACE |
 | KUBEMACS_INIT_DEFAULT_REPOS_FOLDER | /home/ii         | $KUBEMACS_INIT_DEFAULT_REPOS_FOLDER |
 | KUBEMACS_INIT_DEFAULT_REPOS        |                  | $KUBEMACS_INIT_DEFAULT_REPOS |
@@ -162,6 +166,10 @@ if [ "$WILL_CREATE_CLUSTER" = true ]; then
         echo "[status] setting up cluster with local Docker registry support"
         KIND_MANIFEST=/usr/share/kubemacs/kind-cluster+registry.yaml
     fi
+    if [ "$KIND_LOCAL_NETBOOT_ENABLE" = true ]; then
+        echo "[status] setting up cluster with local netboot support"
+        KIND_MANIFEST=/usr/share/kubemacs/kind-cluster+netboot.yaml
+    fi
     kind create cluster --name "$KUBEMACS_KIND_NAME" --config "$KIND_MANIFEST"
     kubectl create ns $KUBEMACS_INIT_DEFAULT_NAMESPACE
     kubectl config set-context $(kubectl config current-context) --namespace=$KUBEMACS_INIT_DEFAULT_NAMESPACE
@@ -200,6 +208,17 @@ if [ "$KIND_LOCAL_REGISTRY_ENABLE" = true ]; then
                 tilt.dev/registry=localhost:${KIND_LOCAL_REGISTRY_PORT} \
                 tilt.dev/registry-from-cluster=registry:${KIND_LOCAL_REGISTRY_PORT}
     done
+fi
+
+if [ "$KIND_LOCAL_NETBOOT_ENABLE" = true ]; then
+    docker pull heyste/pxeboot
+    running="$(docker inspect -f '{{.State.Running}}' "${KIND_LOCAL_NETBOOT_NAME}" 2>/dev/null || true)"
+    if [ ! "${running}" = 'true' ]; then
+        echo "[status] bringing up a local netboot server"
+        execPrintOutputIfFailure docker run \
+               -d --restart=always --network host --name "${KIND_LOCAL_NETBOOT_NAME}" \
+               heyste/pxeboot
+    fi
 fi
 
 if [ "$WILL_CREATE_CLUSTER" = true ]; then
