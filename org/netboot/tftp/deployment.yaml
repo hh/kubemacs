@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tftpboot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      coop.ii: tftpboot
+  template:
+    metadata:
+      labels:
+        coop.ii: tftpboot
+    spec:
+      allowPrivilegeEscalation: true
+      allowedCapabilities:
+      - NET_ADMIN
+      - NET_RAW
+      - SYS_ADMIN
+      hostNetwork: true
+      hostPorts:
+      - max: 7472
+        min: 7472
+      privileged: true
+    spec:
+      containers:
+      - name: tftpboot
+        image: "heyste/tftpboot"
+        ports:
+        - containerPort: 8069
+        - containerPort: 69
+          hostPort: 69
+          protocol: UDP
