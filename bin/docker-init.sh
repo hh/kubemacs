@@ -218,6 +218,12 @@ if [ "$KIND_LOCAL_NETBOOT_ENABLE" = true ]; then
         execPrintOutputIfFailure docker run \
                -d --restart=always --network host --name "${KIND_LOCAL_NETBOOT_NAME}" \
                heyste/pxeboot
+
+        echo "[status] loading TFTP image into Kind from Docker"
+        execPrintOutputIfFailure kind load docker-image --name "$KUBEMACS_KIND_NAME" --nodes "$KUBEMACS_KIND_NAME-worker" "heyste/tftpboot"
+
+        echo "[status] bringing up tftpboot in kind"
+        execPrintOutputIfFailure kubectl apply -f /usr/share/kubemacs/manifests/tftp/deployment.yaml
     fi
 fi
 

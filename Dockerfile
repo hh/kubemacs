@@ -136,6 +136,7 @@ RUN mkdir -p /usr/share/kubemacs
 ADD kind-cluster-config.yaml kind-cluster+registry.yaml kind-cluster+netboot.yaml kustomization.yaml /usr/share/kubemacs/
 ADD manifests /usr/share/kubemacs/manifests
 ADD kustomization.yaml /usr/share/kubemacs/manifests
+ADD org/netboot/tftp/*.yaml /usr/share/kubemacs/manifests/tftp/
 
 # Ideally we used a checkout of this repo, but I'm having trouble with the build + submodules
 # RUN git clone --depth 1 --recursive https://github.com/kubemacs/kubemacs /var/local/kubemacs.d
