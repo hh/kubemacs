@@ -1,0 +1,8 @@
+# -*- ii: y; -*-
+#+TITLE: tilt.localho.st config
+
+* Bring up tilt
+#+begin_src tmate :dir "." :session ii:tilt
+  tilt up --host 0.0.0.0
+#+end_src
+
