@@ -7,5 +7,5 @@ docker run --env-file netboot.env \
            -it \
            -v "$HOME/.kube:/tmp/.kube" \
            -v /var/run/docker.sock:/var/run/docker.sock \
-           kubemacs/kubemacs \
+           heyste/kubemacs \
            docker-init.sh
