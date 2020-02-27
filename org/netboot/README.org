@@ -1,7 +1,6 @@
 # -*- ii: true -*-
 #+TITLE: Network Booting
 
-
 * Summary
 
 Setup a cluster with supporting services to network boot a Rapberry Pi.
@@ -9,9 +8,9 @@ Due to the initial boot process we need to have the PXE container connected to t
 The TFTP container will be located within the cluster.
 
 * Dependencies
-  
+
 We need to have some key network ports, UDP 67 & 69 free before we bring up the network booting environment.
- 
+
 ** Check if UDP Port 67 is free
 *** ss
    #+begin_src shell :dir /sudo::
@@ -20,19 +19,29 @@ We need to have some key network ports, UDP 67 & 69 free before we bring up the 
 
    #+RESULTS:
    #+begin_example
-   UNCONN   0        0              0.0.0.0%virbr0:67               0.0.0.0:*       users:(("dnsmasq",pid=3799,fd=3))                                              
+   UNCONN   0        0              0.0.0.0%virbr0:67               0.0.0.0:*       users:(("dnsmasq",pid=3799,fd=3))
    #+end_example
 
 *** lsof
    #+begin_src shell :dir /sudo::
-      sudo lsof -iUDP -n -P | grep 67 
+      sudo lsof -iUDP -n -P | grep 67
    #+end_src
 
    #+RESULTS:
    #+begin_example
-   dnsmasq   3799 libvirt-dnsmasq    3u  IPv4  58061      0t0  UDP *:67 
+   dnsmasq   3799 libvirt-dnsmasq    3u  IPv4  58061      0t0  UDP *:67
    #+end_example
 
+*** netstat
+   #+begin_src shell
+     netstat -uln | grep 67
+     #  | awk '{print $4}'
+   #+end_src
+
+   #+RESULTS:
+   #+begin_src shell
+   udp        0      0 0.0.0.0:67              0.0.0.0:*
+   #+end_src
 ** If required diable this connection
 
    Use the PID from the output above to release UDP port 67
@@ -96,7 +105,6 @@ Customize with your own email and repos (usually forks) to check out.
             $KUBEMACS_IMAGE \
             docker-init.sh
    #+end_src
-
 * pxeboot alternatives
 ** current pxeboot cycle
 *** build
