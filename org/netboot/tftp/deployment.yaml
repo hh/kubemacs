@@ -28,6 +28,7 @@ spec:
         image: "heyste/tftpboot"
         ports:
         - containerPort: 8069
+          hostPort: 8069
         - containerPort: 69
           hostPort: 69
           protocol: UDP
