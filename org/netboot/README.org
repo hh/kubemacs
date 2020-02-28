@@ -1,0 +1,156 @@
+# -*- ii: true -*-
+#+TITLE: Network Booting
+
+
+* Summary
+
+Setup a cluster with supporting services to network boot a Rapberry Pi.
+Due to the initial boot process we need to have the PXE container connected to the host network on boot.
+The TFTP container will be located within the cluster.
+
+* Dependencies
+  
+We need to have some key network ports, UDP 67 & 69 free before we bring up the network booting environment.
+ 
+** Check if UDP Port 67 is free
+*** ss
+   #+begin_src shell :dir /sudo::
+     sudo ss -ulnp | grep 67
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   UNCONN   0        0              0.0.0.0%virbr0:67               0.0.0.0:*       users:(("dnsmasq",pid=3799,fd=3))                                              
+   #+end_example
+
+*** lsof
+   #+begin_src shell :dir /sudo::
+      sudo lsof -iUDP -n -P | grep 67 
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   dnsmasq   3799 libvirt-dnsmasq    3u  IPv4  58061      0t0  UDP *:67 
+   #+end_example
+
+** If required diable this connection
+
+   Use the PID from the output above to release UDP port 67
+
+* Bootstrapping from Docker
+** Environment for docker-init
+
+Customize with your own email and repos (usually forks) to check out.
+
+   #+name: netboot-dev.env
+   #+begin_src shell :tangle netboot-dev.env
+     # This enabled netboot
+     KIND_LOCAL_NETBOOT_ENABLE=true
+     # The netboot container name
+     KIND_LOCAL_NETBOOT_NAME=netboot
+     # Pin your image
+     KUBEMACS_IMAGE=kubemacs/kubemacs:latest
+     #KUBEMACS_IMAGE=heyste/kubemacs:latest
+     # $(id -u) / mainly for ~/.kube/config permissions
+     HOST_UID="1000"
+     # Vars for git commits
+     KUBEMACS_GIT_EMAIL=hh@ii.coop
+     KUBEMACS_GIT_NAME="Hippie Hacker"
+     KUBEMACS_TIMEZONE=Pacific/Auckland
+     # This is the kind cluster name, maybe we should rename
+     # for some reason we can't used kind as the name
+     KUBEMACS_KIND_NAME=kubemacs
+     # ~/.kube/$KUBEMACS_HOSTCONFIG_NAME
+     KUBEMACS_HOST_KUBECONFIG_NAME=config
+     # Using a docker registry alongside kind
+     KIND_LOCAL_REGISTRY_ENABLE=true
+     KIND_LOCAL_REGISTRY_NAME=local-registry
+     KIND_LOCAL_REGISTRY_PORT=5000
+     # Defaults to home
+     KUBEMACS_INIT_DEFAULT_REPOS_FOLDER=/home/ii
+     # The repositories to check out
+     KUBEMACS_INIT_DEFAULT_REPOS='https://github.com/kubemacs/kubemacs.git'
+     # The folder to start tmate/emacs in
+     KUBEMACS_INIT_DEFAULT_DIR=kubemacs/org/netboot
+     # The first file you want emacs to open
+     KUBEMACS_INIT_ORG_FILE=kubemacs/org/netboot/README.org
+     # If you want to see lots of information
+     KUBEMACS_INIT_DEBUG=true
+   #+end_src
+
+** Running Docker
+   #+name: netboot-dev.sh
+   #+begin_src shell :tangle netboot-dev.sh :tangle-mode (identity #o755)
+     ENV_FILE=netboot-dev.env
+     . $ENV_FILE
+     docker run \
+            --env-file $ENV_FILE \
+            --name kubemacs-docker-init \
+            --user root \
+            --privileged \
+            --network host \
+            --rm \
+            -it \
+            -v "$HOME/.kube:/tmp/.kube" \
+            -v /var/run/docker.sock:/var/run/docker.sock \
+            $KUBEMACS_IMAGE \
+            docker-init.sh
+   #+end_src
+* pxeboot alternatives
+** current pxeboot cycle
+*** build
+ Building, runnig pxeboot
+   #+begin_src tmate :dir "."
+     sudo docker build -t heyste/pxeboot pxe
+   #+end_src
+*** stop / run
+ Building, runnig pxeboot
+   #+begin_src tmate :dir "."
+     docker rm -f pxeboot
+     docker run -d --restart=always \
+                --network host \
+                --name pxeboot \
+                heyste/pxeboot:latest
+   #+end_src
+*** verify that it's running
+   #+begin_src shell
+     docker ps | grep pxeboot
+   #+end_src
+
+   #+RESULTS:
+   #+begin_src shell
+   735b32f7db11        heyste/pxeboot:latest   "webproc --port 8067…"   3 minutes ago       Restarting (1) 46 seconds ago                                                                                                                                                                           pxeboot
+   #+end_src
+
+** TODO alternate GoPXE cycle
+ Possible alternative at:
+ https://github.com/ppetko/GoPXE
+*** stop / run
+ Building, runnig pxeboot
+   #+begin_src tmate :dir "."
+     docker rm -f pxeboot
+     docker run --rm --net=host --name goPXE -td \
+             --mount type=bind,source="$(pwd)"/dhcpd.conf,target=/etc/dhcp/dhcpd.conf \
+             --mount type=bind,source="$(pwd)"/tftpd.conf,target=/etc/xinetd.d/tftp \
+             ppetko/gopxe
+   #+end_src
+** TODO alternate rpi-pxe-server cycle
+ https://github.com/pimterry/rpi-pxe-server
+** TODO alternate astralboot
+ https://github.com/ipfs/astralboot
+* Launching from Kubemacs
+** ensure pxeboot started
+
+   - Note taken on [2020-02-28 Fri 09:54] \\
+     I don't think this has to be started during kubemacs/bin/docker-init.sh
+     Probably best just to be inside the org-file.
+  #+begin_src shell
+    docker ps | grep pxeboot
+  #+end_src
+
+  #+RESULTS:
+  #+begin_src shell
+  9cb9acc7ab96        heyste/pxeboot:latest   "webproc --port 8067…"   4 minutes ago       Up 4 minutes                 pxeboot
+  #+end_src
+
+** ensure tftboot started 
