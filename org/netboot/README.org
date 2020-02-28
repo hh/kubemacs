@@ -119,9 +119,9 @@ Customize with your own email and repos (usually forks) to check out.
    #+end_src
 
    #+RESULTS:
-   #+begin_src shell
-   735b32f7db11        heyste/pxeboot:latest   "webproc --port 8067…"   3 minutes ago       Restarting (1) 46 seconds ago                                                                                                                                                                           pxeboot
-   #+end_src
+   #+begin_example
+   c8fcea367726        heyste/pxeboot:latest      "webproc --port 8067…"   About a minute ago   Up About a minute                 pxeboot
+   #+end_example
 
 ** TODO alternate GoPXE cycle
  Possible alternative at:
@@ -143,6 +143,7 @@ Customize with your own email and repos (usually forks) to check out.
 ** Bring up tilt
 
 Tilt will use the kustomization.yaml and the patches it references to bring up support for TFTP.
+Make sure that pxeboot container is already running.
 
    #+begin_src tmate :dir "."
      tilt up --host 0.0.0.0
