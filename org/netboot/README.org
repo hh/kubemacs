@@ -149,11 +149,8 @@ Make sure that pxeboot container is already running.
      tilt up --host 0.0.0.0
    #+end_src
 
-** ensure pxeboot started
+** Ensure pxeboot started
 
-   - Note taken on [2020-02-28 Fri 09:54] \\
-     I don't think this has to be started during kubemacs/bin/docker-init.sh
-     Probably best just to be inside the org-file.
   #+begin_src shell
     docker ps | grep pxeboot
   #+end_src
@@ -163,4 +160,17 @@ Make sure that pxeboot container is already running.
   9cb9acc7ab96        heyste/pxeboot:latest   "webproc --port 8067…"   4 minutes ago       Up 4 minutes                 pxeboot
   #+end_src
 
-** ensure tftboot started 
+You can also check the [[http://localhost:8067/][web server]] (port 8067) for the current status and/or troubleshoot the PXE service with it.
+
+** Ensure tftboot started
+
+   #+begin_src shell
+     kubectl get pods | grep tftp
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   tftpboot-747c89cc95-6wc7s   1/1     Running   0          84s
+   #+end_example
+
+   You can also check the [[http://localhost:8069/][web server]] (port 8069) for the current status and/or troubleshoot the TFTP service with it.
