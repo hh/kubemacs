@@ -96,6 +96,7 @@ Customize with your own email and repos (usually forks) to check out.
             $KUBEMACS_IMAGE \
             docker-init.sh
    #+end_src
+
 * pxeboot alternatives
 ** current pxeboot cycle
 *** build
@@ -139,6 +140,14 @@ Customize with your own email and repos (usually forks) to check out.
 ** TODO alternate astralboot
  https://github.com/ipfs/astralboot
 * Launching from Kubemacs
+** Bring up tilt
+
+Tilt will use the kustomization.yaml and the patches it references to bring up support for TFTP.
+
+   #+begin_src tmate :dir "."
+     tilt up --host 0.0.0.0
+   #+end_src
+
 ** ensure pxeboot started
 
    - Note taken on [2020-02-28 Fri 09:54] \\
