@@ -81,6 +81,12 @@ nodes:
          node-labels: "ingress-ready=true"
          authorization-mode: "AlwaysAllow"
  - role: worker
+   extraPortMappings:
+   - containerPort: 69
+     hostPort: 69
+     protocol: UDP
+   - containerPort: 8069
+     hostPort: 8069
    extraMounts:
    # - containerPath: /var/local-path-provisioner
    #   hostPath: /tmp/workspace/pvcs

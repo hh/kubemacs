@@ -1,5 +1,4 @@
 # -*- mode: python; -*-
 k8s_yaml(kustomize('.'))
-# docker_build('heyste/pxeboot', 'pxeboot')
-docker_build('heyste/tftpboot', 'tftpboot')
+docker_build('heyste/tftpboot', 'tftp')
 allow_k8s_contexts('in-cluster')
